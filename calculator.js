@@ -107,13 +107,13 @@ class PriceCalculator {
 
     findOptimalConfiguration(currentUsers, currentSubscribers, currentTotal) {
         let bestConfig = null;
-        let maxSavings = 0;
+        let maxPriority = -1;
 
         // Текущий тир и включенные подписчики
         const currentTier = CONFIG.userTiers.find(t => currentUsers <= t.max);
         const currentIncludedSubs = currentTier?.subs || CONFIG.userTiers[CONFIG.userTiers.length - 1].subs;
 
-        // Если у клиента есть неиспользованные включенные подписчики
+        // Проверяем неиспользованные подписчики
         if (currentSubscribers < currentIncludedSubs) {
             bestConfig = {
                 users: currentUsers,
@@ -121,109 +121,135 @@ class PriceCalculator {
                 total: currentTotal,
                 savings: 0,
                 includedSubs: currentIncludedSubs,
+                currentIncludedSubs,
                 extraSubs: 0,
                 pricePerUser: currentTier.price,
                 unusedSubscribers: currentIncludedSubs - currentSubscribers,
-                type: 'unused_subs'
+                type: 'unused_subs',
+                priority: CONFIG.optimization.priority.unusedSubs
             };
-            return bestConfig;
+            maxPriority = bestConfig.priority;
         }
 
-        // Существующая логика поиска лучшей конфигурации...
+        // Проверяем все возможные конфигурации
         for (const tier of CONFIG.userTiers) {
-            // Пропускаем варианты с меньшим количеством пользователей
             if (tier.max < currentUsers) continue;
             
-            // Используем минимальное необходимое количество пользователей
             const users = Math.max(currentUsers, 
                 tier === CONFIG.userTiers[0] ? 1 : CONFIG.userTiers[CONFIG.userTiers.indexOf(tier) - 1].max + 1);
             
             const includedSubs = tier.subs;
             const basePrice = tier.price;
             const userPrice = this.yearlyBilling.checked ? this.getYearlyPrice(basePrice) : basePrice;
-
-            // Проверяем текущее количество подписчиков
             const extraSubs = Math.max(0, currentSubscribers - includedSubs);
             const extraSubsPrice = extraSubs > 0 ? calculateExtraSubscribersCost(currentSubscribers, includedSubs) : 0;
             const total = users * userPrice + extraSubsPrice;
 
-            const savings = currentTotal - total;
-            
-            console.log('Checking tier:', {
-                users,
-                includedSubs,
-                extraSubs,
-                userPrice,
-                extraSubsPrice,
-                total,
-                savings
-            });
+            const priceChange = ((total - currentTotal) / currentTotal) * 100;
+            const usersChange = ((users - currentUsers) / currentUsers) * 100;
+            const subsChange = ((includedSubs - currentIncludedSubs) / currentIncludedSubs) * 100;
 
-            // Проверяем, есть ли реальная экономия и увеличение возможностей
-            if (savings > maxSavings && 
-                (users > currentUsers || extraSubs < (currentSubscribers - includedSubs))) {
-                console.log('Found better configuration!');
-                maxSavings = savings;
-                bestConfig = {
+            // Проверяем экономию
+            if (total < currentTotal) {
+                const savings = currentTotal - total;
+                const config = {
                     users,
                     subscribers: currentSubscribers,
                     total,
                     savings,
                     includedSubs,
+                    currentIncludedSubs,
                     extraSubs,
                     pricePerUser: userPrice,
-                    type: 'upgrade'
+                    type: 'savings',
+                    priority: CONFIG.optimization.priority.savings
                 };
+                
+                if (config.priority > maxPriority) {
+                    bestConfig = config;
+                    maxPriority = config.priority;
+                }
+            }
+            // Проверяем выгодный апгрейд
+            else if (
+                priceChange <= CONFIG.optimization.maxPriceIncreasePercent && 
+                (usersChange >= CONFIG.optimization.minUsersIncreasePercent || 
+                 subsChange >= CONFIG.optimization.minSubscribersIncreasePercent)
+            ) {
+                const config = {
+                    users,
+                    subscribers: currentSubscribers,
+                    total,
+                    priceIncrease: total - currentTotal,
+                    priceIncreasePercent: priceChange,
+                    usersIncreasePercent: usersChange,
+                    subsIncreasePercent: subsChange,
+                    includedSubs,
+                    currentIncludedSubs,
+                    extraSubs,
+                    pricePerUser: userPrice,
+                    type: 'value_upgrade',
+                    priority: CONFIG.optimization.priority.valueUpgrade
+                };
+                
+                if (config.priority > maxPriority) {
+                    bestConfig = config;
+                    maxPriority = config.priority;
+                }
             }
         }
 
-        console.log('Best config found:', bestConfig);
         return bestConfig;
     }
 
     showAdvice(config) {
-        console.log('Showing advice for config:', config);
         if (!config) {
-            console.log('No advice to show - no config found');
             this.adviceContainer.style.display = 'none';
             return;
         }
 
-        // Сначала удаляем все возможные классы стилей
-        this.adviceContainer.classList.remove('savings', 'unused-subs', 'upgrade');
+        this.adviceContainer.classList.remove('savings', 'unused-subs', 'upgrade', 'value-upgrade');
 
-        if (config.type === 'unused_subs') {
-            this.adviceContainer.classList.add('unused-subs');
-            this.adviceMessage.innerHTML = `
-                Optimization tip: You can add ${formatNumber(config.unusedSubscribers)} more subscribers 
-                with your current plan at no extra cost!
-                <ul>
-                    <li>Increase subscribers to ${formatNumber(config.includedSubs)} at the same price</li>
-                </ul>
-            `;
-        } else {
-            const savingsPercent = Math.round((config.savings / this.getCurrentTotal()) * 100);
-            const additionalUsers = config.users - Number(this.usersNumber.value);
-            
-            if (config.savings > 0) {
+        let message;
+        switch (config.type) {
+            case 'unused_subs':
+                this.adviceContainer.classList.add('unused-subs');
+                message = `
+                    Optimization tip: You can add ${formatNumber(config.unusedSubscribers)} more subscribers 
+                    with your current plan at no extra cost!
+                    <ul>
+                        <li>Increase subscribers to ${formatNumber(config.includedSubs)} at the same price</li>
+                    </ul>
+                `;
+                break;
+
+            case 'savings':
                 this.adviceContainer.classList.add('savings');
-            } else {
-                this.adviceContainer.classList.add('upgrade');
-            }
-            
-            let savingsText = config.savings > 0 
-                ? `Save $${formatPrice(config.savings)}/mo (${savingsPercent}% off)`
-                : 'Keep the same monthly price';
-            
-            this.adviceMessage.innerHTML = `
-                Optimization tip: Upgrade to ${config.users} users to:
-                <ul>
-                    <li>${savingsText}</li>
-                    <li>Get ${additionalUsers} additional user license${additionalUsers > 1 ? 's' : ''} with the same number of subscribers</li>
-                </ul>
-            `;
+                const savingsPercent = Math.round((config.savings / this.getCurrentTotal()) * 100);
+                const additionalUsers = config.users - Number(this.usersNumber.value);
+                message = `
+                    Optimization tip: Upgrade to ${config.users} users to:
+                    <ul>
+                        <li>Save $${formatPrice(config.savings)}/mo (${savingsPercent}% off)</li>
+                        <li>Get ${additionalUsers} additional user license${additionalUsers > 1 ? 's' : ''} with the same number of subscribers</li>
+                    </ul>
+                `;
+                break;
+
+            case 'value_upgrade':
+                this.adviceContainer.classList.add('value-upgrade');
+                const additionalUsersValue = config.users - Number(this.usersNumber.value);
+                message = `
+                    Optimization tip: Great value upgrade opportunity!
+                    <ul>
+                        <li>Get ${additionalUsersValue} additional user licenses (+${Math.round(config.usersIncreasePercent)}%)</li>
+                        <li>Additional cost: $${formatPrice(config.priceIncrease)}/mo (+${Math.round(config.priceIncreasePercent)}%)</li>
+                    </ul>
+                `;
+                break;
         }
-        
+
+        this.adviceMessage.innerHTML = message;
         this.adviceContainer.style.display = 'block';
         this.optimalConfig = config;
     }

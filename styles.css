@@ -215,6 +215,16 @@ input:checked + .slider:before {
     content: "⭐";
 }
 
+/* Стиль для совета о выгодном апгрейде */
+.pricing-advice.value-upgrade {
+    background-color: #fff7ed;
+    border: 1px solid #fdba74;
+}
+
+.pricing-advice.value-upgrade .advice-message::before {
+    content: "🚀";
+}
+
 .advice-content {
     display: flex;
     flex-direction: column;

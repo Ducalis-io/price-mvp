@@ -44,5 +44,22 @@ const CONFIG = {
         subscribersStep: 500,
         defaultUsers: 4,
         defaultSubscribers: 0
+    },
+
+    // Optimization thresholds
+    optimization: {
+        // Максимальное увеличение цены для предложения апгрейда
+        maxPriceIncreasePercent: 15,
+        
+        // Минимальное увеличение ресурсов для предложения апгрейда
+        minUsersIncreasePercent: 50,
+        minSubscribersIncreasePercent: 40,
+        
+        // Приоритеты для разных типов оптимизации (чем выше, тем приоритетнее)
+        priority: {
+            savings: 3,          // Экономия денег
+            unusedSubs: 2,       // Неиспользованные подписчики
+            valueUpgrade: 1      // Выгодный апгрейд
+        }
     }
 }; 
