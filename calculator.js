@@ -84,26 +84,10 @@ class PriceCalculator {
         return Math.round(basePrice * (1 - CONFIG.yearlyDiscount/100));
     }
 
-    getExtraSubsPrice(extraSubs) {
-        let price = 0;
-        let remainingSubs = extraSubs;
-        let currentTierIndex = 0;
-
-        while (remainingSubs > 0 && currentTierIndex < CONFIG.subscriberTiers.length) {
-            const currentTier = CONFIG.subscriberTiers[currentTierIndex];
-            const prevMax = currentTierIndex > 0 ? CONFIG.subscriberTiers[currentTierIndex - 1].max : 0;
-            const tierCapacity = currentTier.max - prevMax;
-            const subsInTier = Math.min(remainingSubs, tierCapacity);
-
-            if (subsInTier > 0) {
-                price = currentTier.price;
-            }
-
-            remainingSubs -= subsInTier;
-            currentTierIndex++;
-        }
-
-        return price;
+    getExtraSubsPrice(subscribers) {
+        const baseTier = CONFIG.userTiers.find(t => Number(this.usersNumber.value) <= t.max);
+        const includedSubs = baseTier?.subs || CONFIG.userTiers[CONFIG.userTiers.length - 1].subs;
+        return calculateExtraSubscribersCost(subscribers, includedSubs);
     }
 
     calculate() {
@@ -185,4 +169,16 @@ class PriceCalculator {
 // Initialize calculator when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     new PriceCalculator();
-}); 
+});
+
+function calculateExtraSubscribersCost(totalSubscribers, includedSubscribers) {
+    const extraSubscribers = Math.max(0, totalSubscribers - includedSubscribers);
+    
+    if (extraSubscribers === 0) return 0;
+    
+    // Находим подходящий тир для количества дополнительных подписчиков
+    const tier = CONFIG.subscriberTiers.find(t => extraSubscribers <= t.max);
+    
+    // Если нашли подходящий тир, возвращаем его цену
+    return tier ? tier.price : CONFIG.subscriberTiers[CONFIG.subscriberTiers.length - 1].price;
+} 
