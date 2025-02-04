@@ -180,34 +180,83 @@ input:checked + .slider:before {
 
 .pricing-advice {
     margin-top: 1rem;
-    padding: 1rem;
+    padding: 1.25rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+/* Стиль для совета по экономии (когда savings > 0) */
+.pricing-advice.savings {
+    background-color: #ecfdf5;
+    border: 1px solid #6ee7b7;
+}
+
+.pricing-advice.savings .advice-message::before {
+    content: "💰";
+}
+
+/* Стиль для совета по неиспользованным подписчикам */
+.pricing-advice.unused-subs {
     background-color: #f0f9ff;
     border: 1px solid #bae6fd;
-    border-radius: 0.5rem;
+}
+
+.pricing-advice.unused-subs .advice-message::before {
+    content: "🎁";
+}
+
+/* Стиль для совета по апгрейду без экономии */
+.pricing-advice.upgrade {
+    background-color: #faf5ff;
+    border: 1px solid #e9d5ff;
+}
+
+.pricing-advice.upgrade .advice-message::before {
+    content: "⭐";
 }
 
 .advice-content {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 1.25rem;
 }
 
-.advice-content ul {
-    margin-left: 2rem;
-    margin-top: 0.5rem;
+.advice-message {
+    font-weight: 500;
+    line-height: 1.4;
 }
 
-.advice-content li {
-    margin-bottom: 0.25rem;
+/* Общие стили для иконок */
+.advice-message::before {
+    margin-right: 0.5rem;
+    font-size: 1.2em;
+    vertical-align: -0.1em;
+}
+
+.advice-message ul {
+    margin-top: 0.75rem;
+    margin-left: 2.5rem;
+    font-weight: normal;
+}
+
+.advice-message li {
+    margin-bottom: 0.5rem;
+}
+
+.advice-message li:last-child {
+    margin-bottom: 0;
 }
 
 .apply-advice {
     background-color: #0ea5e9;
     color: white;
     border: none;
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1rem;
     border-radius: 0.25rem;
     cursor: pointer;
+    font-size: 0.95rem;
+    width: 100%;
+    text-align: center;
 }
 
 .apply-advice:hover {

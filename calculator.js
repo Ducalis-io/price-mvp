@@ -109,13 +109,27 @@ class PriceCalculator {
         let bestConfig = null;
         let maxSavings = 0;
 
-        console.log('Current configuration:', {
-            users: currentUsers,
-            subscribers: currentSubscribers,
-            total: currentTotal
-        });
+        // Текущий тир и включенные подписчики
+        const currentTier = CONFIG.userTiers.find(t => currentUsers <= t.max);
+        const currentIncludedSubs = currentTier?.subs || CONFIG.userTiers[CONFIG.userTiers.length - 1].subs;
 
-        // Проверяем все возможные конфигурации пользователей
+        // Если у клиента есть неиспользованные включенные подписчики
+        if (currentSubscribers < currentIncludedSubs) {
+            bestConfig = {
+                users: currentUsers,
+                subscribers: currentIncludedSubs,
+                total: currentTotal,
+                savings: 0,
+                includedSubs: currentIncludedSubs,
+                extraSubs: 0,
+                pricePerUser: currentTier.price,
+                unusedSubscribers: currentIncludedSubs - currentSubscribers,
+                type: 'unused_subs'
+            };
+            return bestConfig;
+        }
+
+        // Существующая логика поиска лучшей конфигурации...
         for (const tier of CONFIG.userTiers) {
             // Пропускаем варианты с меньшим количеством пользователей
             if (tier.max < currentUsers) continue;
@@ -157,7 +171,8 @@ class PriceCalculator {
                     savings,
                     includedSubs,
                     extraSubs,
-                    pricePerUser: userPrice
+                    pricePerUser: userPrice,
+                    type: 'upgrade'
                 };
             }
         }
@@ -174,20 +189,40 @@ class PriceCalculator {
             return;
         }
 
-        const savingsPercent = Math.round((config.savings / this.getCurrentTotal()) * 100);
-        const additionalUsers = config.users - Number(this.usersNumber.value);
-        
-        let savingsText = config.savings > 0 
-            ? `Save $${formatPrice(config.savings)}/mo (${savingsPercent}% off)`
-            : 'Keep the same monthly price';
-        
-        this.adviceMessage.innerHTML = `
-            💡 Optimization tip: Upgrade to ${config.users} users to:
-            <ul>
-                <li>${savingsText}</li>
-                <li>Get ${additionalUsers} additional user license${additionalUsers > 1 ? 's' : ''} with the same number of subscribers</li>
-            </ul>
-        `;
+        // Сначала удаляем все возможные классы стилей
+        this.adviceContainer.classList.remove('savings', 'unused-subs', 'upgrade');
+
+        if (config.type === 'unused_subs') {
+            this.adviceContainer.classList.add('unused-subs');
+            this.adviceMessage.innerHTML = `
+                Optimization tip: You can add ${formatNumber(config.unusedSubscribers)} more subscribers 
+                with your current plan at no extra cost!
+                <ul>
+                    <li>Increase subscribers to ${formatNumber(config.includedSubs)} at the same price</li>
+                </ul>
+            `;
+        } else {
+            const savingsPercent = Math.round((config.savings / this.getCurrentTotal()) * 100);
+            const additionalUsers = config.users - Number(this.usersNumber.value);
+            
+            if (config.savings > 0) {
+                this.adviceContainer.classList.add('savings');
+            } else {
+                this.adviceContainer.classList.add('upgrade');
+            }
+            
+            let savingsText = config.savings > 0 
+                ? `Save $${formatPrice(config.savings)}/mo (${savingsPercent}% off)`
+                : 'Keep the same monthly price';
+            
+            this.adviceMessage.innerHTML = `
+                Optimization tip: Upgrade to ${config.users} users to:
+                <ul>
+                    <li>${savingsText}</li>
+                    <li>Get ${additionalUsers} additional user license${additionalUsers > 1 ? 's' : ''} with the same number of subscribers</li>
+                </ul>
+            `;
+        }
         
         this.adviceContainer.style.display = 'block';
         this.optimalConfig = config;
