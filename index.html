@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="calculator-container">
+        <div class="calculator">
+            <div class="input-section">
+                <div class="billing-toggle">
+                    <label class="switch">
+                        <input type="checkbox" id="yearlyBilling">
+                        <span class="slider"></span>
+                    </label>
+                    <span>Annual billing (20% off)</span>
+                </div>
+
+                <div class="input-group">
+                    <label>Users</label>
+                    <div class="range-input">
+                        <input type="number" id="usersNumber" min="1" max="100" value="4">
+                        <input type="range" id="usersRange" min="1" max="100" value="4">
+                    </div>
+                    <div id="pricePerUser" class="price-per-user"></div>
+                </div>
+
+                <div class="input-group">
+                    <label>Subscribers</label>
+                    <div class="range-input">
+                        <input type="number" id="subscribersNumber" min="0" max="1000000" step="500" value="0">
+                        <input type="range" id="subscribersRange" min="0" max="1000000" step="500" value="0">
+                    </div>
+                </div>
+
+                <div class="summary">
+                    <div class="summary-item">
+                        <span>Subscribers included:</span>
+                        <span id="includedSubs"></span>
+                    </div>
+                    <div class="summary-item" id="extraSubsRow">
+                        <span>Additional subscribers:</span>
+                        <span id="extraSubs"></span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Users cost:</span>
+                        <span id="usersCost"></span>
+                    </div>
+                    <div class="summary-item" id="extraSubsCostRow">
+                        <span>Extra subscribers cost:</span>
+                        <span id="extraSubsCost"></span>
+                    </div>
+                    <div class="total">
+                        <span>Total:</span>
+                        <div class="total-amount">
+                            <span id="totalCost"></span>
+                            <span id="monthlyEquivalent" class="monthly-equivalent"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tiers-section">
+                <div class="user-tiers">
+                    <h3>User License Tiers</h3>
+                    <div id="userTiersList" class="tiers-list"></div>
+                </div>
+
+                <div class="subscriber-tiers">
+                    <h3>Extra Subscribers Pricing</h3>
+                    <div id="subscriberTiersList" class="tiers-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="calculator.js"></script>
+</body>
+</html> 
