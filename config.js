@@ -5,12 +5,12 @@ const CONFIG = {
     // User license tiers
     userTiers: [
         { max: 3, price: 20, subs: 1500 },
-        { max: 5, price: 18, subs: 5000 },
-        { max: 10, price: 16, subs: 15000 },
-        { max: 25, price: 15, subs: 35000 },
-        { max: 44, price: 12, subs: 75000 },
-        { max: 59, price: 10, subs: 150000 },
-        { max: Infinity, price: 8, subs: 250000 }
+        { max: 5, price: 18, subs: 2500 },
+        { max: 10, price: 16, subs: 7500 },
+        { max: 20, price: 15, subs: 15000 },
+        { max: 44, price: 12, subs: 30000 },
+        { max: 59, price: 10, subs: 50000 },
+        { max: Infinity, price: 8, subs: 70000 }
     ],
 
     // Subscriber tiers pricing
