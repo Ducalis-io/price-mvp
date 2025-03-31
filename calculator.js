@@ -348,7 +348,7 @@ class PriceCalculator {
 // Initialize calculator when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     new PriceCalculator();
-});
+}); 
 
 function calculateExtraSubscribersCost(totalSubscribers, includedSubscribers) {
     const extraSubscribers = Math.max(0, totalSubscribers - includedSubscribers);
