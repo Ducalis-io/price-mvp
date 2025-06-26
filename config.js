@@ -7,13 +7,13 @@ const CONFIG = {
         { max: 3, price: 10, subs: 500 },
         { max: 5, price: 10, subs: 2000 },
         { max: 10, price: 9, subs: 7500 },
-        { max: 20, price: 7, subs: 15000 },
-        { max: Infinity, price: 8, subs: 20000 }
+        { max: 20, price: 8, subs: 15000 },
+        { max: Infinity, price: 7, subs: 20000 }
     ],
 
     // Subscriber tiers pricing
     subscriberTiers: [
-        { max: 100, price: 0 },
+        { max: 100, price: 3 },
         { max: 500, price: 5 },
         { max: 1500, price: 14 },
         { max: 5000, price: 49 },
