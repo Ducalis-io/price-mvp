@@ -10,14 +10,30 @@ export default function NumberStepper(props) {
     // Internal state mirrors the `value` prop so the component can be used
     // both **controlled** (via `value` + `onChange`) and **uncontrolled**.
     // ---------------------------------------------------------------------
-    const [currentValue, setCurrentValue] = useState(
-        props.value ?? props.min
-    )
+    const [currentValue, setCurrentValue] = useState(props.value ?? props.min)
 
     // Sync internal state when an external `value` prop changes
     useEffect(() => {
         setCurrentValue(props.value ?? props.min)
     }, [props.value, props.min])
+
+    // Inject CSS once to hide default number input spinners (WebKit & Firefox)
+    useEffect(() => {
+        if (document.getElementById("number-stepper-style")) return
+        const style = document.createElement("style")
+        style.id = "number-stepper-style"
+        style.textContent = `
+            input.number-stepper-input::-webkit-outer-spin-button,
+            input.number-stepper-input::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
+            input.number-stepper-input {
+                -moz-appearance: textfield; /* Firefox */
+            }
+        `
+        document.head.appendChild(style)
+    }, [])
 
     // Helper ‑ keeps the value within min/max bounds
     const clamp = (val) => Math.min(props.max, Math.max(props.min, val))
@@ -68,13 +84,18 @@ export default function NumberStepper(props) {
                     disabled={currentValue <= props.min}
                     onMouseEnter={() => setMinusHover(true)}
                     onMouseLeave={() => setMinusHover(false)}
-                    style={buttonStyle(props, currentValue <= props.min, isMinusHover)}
+                    style={buttonStyle(
+                        props,
+                        currentValue <= props.min,
+                        isMinusHover
+                    )}
                 >
                     −
                 </button>
             )}
 
             <input
+                className="number-stepper-input"
                 type="number"
                 value={currentValue}
                 min={props.min}
@@ -86,21 +107,13 @@ export default function NumberStepper(props) {
                     minWidth: 0,
                     textAlign: "center",
                     fontSize: 16,
-                    fontWeight: 600,
+                    fontWeight: 300,
                     padding: "8px 12px",
                     borderRadius: 4,
                     border: `1px solid ${props.inputBorderColor}`,
                     background: props.valueBackground,
                     color: props.valueColor,
                 }}
-                css={`
-                    &::-webkit-outer-spin-button,
-                    &::-webkit-inner-spin-button {
-                        -webkit-appearance: none;
-                        margin: 0;
-                    }
-                    -moz-appearance: textfield;
-                `}
             />
 
             {props.showButtons && (
@@ -109,7 +122,11 @@ export default function NumberStepper(props) {
                     disabled={currentValue >= props.max}
                     onMouseEnter={() => setPlusHover(true)}
                     onMouseLeave={() => setPlusHover(false)}
-                    style={buttonStyle(props, currentValue >= props.max, isPlusHover)}
+                    style={buttonStyle(
+                        props,
+                        currentValue >= props.max,
+                        isPlusHover
+                    )}
                 >
                     +
                 </button>
@@ -129,9 +146,13 @@ const buttonStyle = (props, disabled, hovered = false) => ({
     justifyContent: "center",
     fontSize: 20,
     borderRadius: 4,
+    padding: "0 0 2px 0",
     border: `1px solid ${props.buttonBorderColor}`,
     // Apply hover styles only when hovered and not disabled
-    background: hovered && !disabled ? props.buttonHoverBackground : props.buttonBackground,
+    background:
+        hovered && !disabled
+            ? props.buttonHoverBackground
+            : props.buttonBackground,
     color: hovered && !disabled ? props.buttonHoverColor : props.buttonColor,
     cursor: "pointer",
     opacity: disabled ? 0.4 : 1,
@@ -145,7 +166,6 @@ NumberStepper.defaultProps = {
     min: 1,
     max: 100,
     step: 1,
-    value: 10,
 
     // Labels / layout
     rowBackground: "transparent",
@@ -155,7 +175,6 @@ NumberStepper.defaultProps = {
     controlGap: "8px",
 
     // Input
-    inputWidth: "100px",
     valueColor: "#ffffff",
     valueBackground: "rgba(255,255,255,0.05)",
     inputBorderColor: "#555",
@@ -175,11 +194,6 @@ NumberStepper.defaultProps = {
 // -------------------------------------------------------------------------
 addPropertyControls(NumberStepper, {
     // Core numeric behaviour
-    value: {
-        type: ControlType.Number,
-        title: "Default Value",
-        defaultValue: NumberStepper.defaultProps.value,
-    },
     min: { type: ControlType.Number, title: "Min", defaultValue: 1 },
     max: { type: ControlType.Number, title: "Max", defaultValue: 100 },
     step: { type: ControlType.Number, title: "Step", defaultValue: 1 },
@@ -191,7 +205,6 @@ addPropertyControls(NumberStepper, {
     rowPadding: { type: ControlType.String, title: "Row Padding" },
 
     // Input styling
-    inputWidth: { type: ControlType.String, title: "Input Width" },
     valueColor: { type: ControlType.Color, title: "Value Color" },
     valueBackground: { type: ControlType.Color, title: "Value BG" },
     inputBorderColor: { type: ControlType.Color, title: "Input Border" },
@@ -206,6 +219,9 @@ addPropertyControls(NumberStepper, {
     buttonBackground: { type: ControlType.Color, title: "Button BG" },
     buttonColor: { type: ControlType.Color, title: "Button Color" },
     buttonBorderColor: { type: ControlType.Color, title: "Button Border" },
-    buttonHoverBackground: { type: ControlType.Color, title: "Button Hover BG" },
+    buttonHoverBackground: {
+        type: ControlType.Color,
+        title: "Button Hover BG",
+    },
     buttonHoverColor: { type: ControlType.Color, title: "Button Hover Color" },
 })

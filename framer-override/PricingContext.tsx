@@ -29,8 +29,8 @@ export const usePricingContext = () => {
 // Provider override - This is the key part!
 export function PricingProvider(Component: ComponentType): ComponentType {
     return function WrappedPricingProvider(props: any) {
-        const [users, setUsers] = useState(4)
-        const [subscribers, setSubscribers] = useState(0)
+        const [users, setUsers] = useState(6)
+        const [subscribers, setSubscribers] = useState(7550)
         const [isYearly, setIsYearly] = useState(false)
 
         return (

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react"
+import { addPropertyControls, ControlType } from "framer"
 
 /**
  * @framerSupportedLayoutWidth any
@@ -110,7 +111,29 @@ export default function PriceRecipe({ style, ...props }) {
         }
     }, [props.users, props.subscribers, props.isYearly, config])
 
-    if (isLoading || !breakdown) return null
+    if (isLoading || !breakdown)
+        return (
+            <div
+                style={{
+                    width: "100%",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    padding: "24px",
+                    fontFamily: "system-ui, -apple-system, sans-serif",
+                    ...style,
+                }}
+            >
+                <span
+                    style={{
+                        color: props.loaderColor,
+                        fontSize: props.loaderFontSize,
+                    }}
+                >
+                    {props.loaderText}
+                </span>
+            </div>
+        )
 
     const rows = [
         {
@@ -217,4 +240,14 @@ PriceRecipe.defaultProps = {
     subscribers: 0,
     isYearly: false,
     priceColor: "#0070f3",
+    // Loader defaults
+    loaderText: "Calculating…",
+    loaderColor: "#888888",
+    loaderFontSize: 16,
 }
+
+addPropertyControls(PriceRecipe, {
+    loaderText: { type: ControlType.String, title: "Loader Text" },
+    loaderColor: { type: ControlType.Color, title: "Loader Color" },
+    loaderFontSize: { type: ControlType.Number, title: "Loader Size" },
+})

@@ -62,7 +62,29 @@ export default function PricingTable(props) {
         fetchConfig()
     }, [])
 
-    if (isLoading || !config) return null
+    if (isLoading || !config)
+        return (
+            <div
+                style={{
+                    width: "100%",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    padding: "24px",
+                    fontFamily: "system-ui, -apple-system, sans-serif",
+                    ...props.style,
+                }}
+            >
+                <span
+                    style={{
+                        color: props.loaderColor,
+                        fontSize: props.loaderFontSize,
+                    }}
+                >
+                    {props.loaderText}
+                </span>
+            </div>
+        )
 
     // ------------------------------------------------------------------
     // Helpers
@@ -219,6 +241,10 @@ PricingTable.defaultProps = {
     priceFontSize: 14,
     includedColor: "#ffffff",
     includedFontSize: 12,
+    // Loader defaults
+    loaderText: "Loading pricing…",
+    loaderColor: "#888888",
+    loaderFontSize: 16,
 }
 
 addPropertyControls(PricingTable, {
@@ -235,4 +261,8 @@ addPropertyControls(PricingTable, {
     // Included value
     includedColor: { type: ControlType.Color, title: "Included Color" },
     includedFontSize: { type: ControlType.Number, title: "Included Size" },
+    // Loader controls
+    loaderText: { type: ControlType.String, title: "Loader Text" },
+    loaderColor: { type: ControlType.Color, title: "Loader Color" },
+    loaderFontSize: { type: ControlType.Number, title: "Loader Size" },
 }) 
